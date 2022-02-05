@@ -3,6 +3,7 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import dataclasses
+import datetime
 import hashlib
 import json
 from flask import Flask, jsonify
@@ -24,4 +25,9 @@ class BlockChain:
         self.chain = []
         self.create_block(proof = 1, previous_hash = '0')
 
-    def create_block(self, proof, ):
+    def create_block(self, proof, previous_hash):
+        block = {'index': len(self.chain) + 1,
+                 'timestamp': str(datetime.datetime.now()),
+                 'proof': proof, 'previous_hash': previous_hash}
+        self.chain.append(block)
+        return block
