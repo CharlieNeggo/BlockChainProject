@@ -33,8 +33,8 @@ class Blockchain:
         new_proof = 1
         check_proof = False
         while check_proof is False:
-            hash_operation = hashlib.sha256(str(new_proof ** 10 - previous_proof ** 10).encode()).hexdigest()
-            if hash_operation[:10] == '0000000000':
+            hash_operation = hashlib.sha256(str(new_proof ** 2 - previous_proof ** 2).encode()).hexdigest()
+            if hash_operation[:4] == '0000':
                 check_proof = True
             else:
                 new_proof += 1
@@ -53,8 +53,8 @@ class Blockchain:
                 return False
             previous_proof = previous_block['proof']
             proof = block['proof']
-            hash_operation = hashlib.sha256(str(proof ** 10 - previous_proof ** 10).encode()).hexdigest()
-            if hash_operation[:10] != '0000000000':
+            hash_operation = hashlib.sha256(str(proof ** 2 - previous_proof ** 2).encode()).hexdigest()
+            if hash_operation[:4] != '0000':
                 return False
             previous_block = block
             block_index += 1
@@ -105,16 +105,16 @@ def mine_block():
     previous_block = blockchain.get_previous_block()
     previous_proof = previous_block['proof']
     proof = blockchain.proof_of_work(previous_proof)
-    previous_hash = hash(previous_block)
-    blockchain.add_transaction(sender=node_address, receiver='Emily')
+    previous_hash = blockchain.hash(previous_block)
+    blockchain.add_transaction(sender=node_address, receiver='Person Two', amount=1)
     block = blockchain.create_block(proof, previous_hash)
-    response = {'message': 'You just mined a block!',
+    response = {'message': 'Mined Block',
                 'index': block['index'],
                 'timestamp': block['timestamp'],
                 'proof': block['proof'],
                 'previous_hash': block['previous_hash'],
                 'transactions': block['transactions']}
-    return jsonify(response), 200  # Success
+    return jsonify(response), 200
 
 
 @app.route('/add_transaction', methods=['POST'])
@@ -123,11 +123,11 @@ def add_transaction():
     transaction_keys = ['sender',
                         'receiver',
                         'amount']
-    if not all(key in json for key in transaction_keys):
+    if not all(key in json_file for key in transaction_keys):
         return 'Error, Elements of transactions null', 400  # Error
-    index = blockchain.add_transaction(json['sender'],
-                                       json['receiver'],
-                                       json['amount'])
+    index = blockchain.add_transaction(json_file['sender'],
+                                       json_file['receiver'],
+                                       json_file['amount'])
     response = {'message': f'Transaction added block {index}'}
     return jsonify(response), 201  # Created
 
@@ -166,7 +166,7 @@ def is_valid():
 
 @app.route('/replace_chain', methods=['GET'])
 def replace_chain():
-    is_chain_replaced = blockchain.replace_chain(blockchain.chain)
+    is_chain_replaced = blockchain.replace_chain()
     if is_chain_replaced:
         response = {'message': 'Nodes Changed.',
                     'new_chain': blockchain.chain}
